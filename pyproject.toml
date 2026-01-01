@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iptuapi"
+version = "1.0.0"
+description = "SDK oficial Python para a IPTU API - Dados de IPTU e ITBI de Sao Paulo, Belo Horizonte e Recife"
+readme = "README.md"
+license = {text = "Proprietary"}
+requires-python = ">=3.9"
+authors = [
+    {name = "IPTU API", email = "suporte@iptuapi.com.br"}
+]
+keywords = ["iptu", "itbi", "api", "imoveis", "real-estate", "brazil", "sao-paulo"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: Other/Proprietary License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+dependencies = [
+    "requests>=2.28.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "responses>=0.23.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.urls]
+Homepage = "https://iptuapi.com.br"
+Documentation = "https://iptuapi.com.br/docs"
+Repository = "https://github.com/raphaeltorquat0/iptuapi-python"
+Issues = "https://github.com/raphaeltorquat0/iptuapi-python/issues"
+
+[tool.setuptools.packages.find]
+include = ["iptuapi*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --cov=iptuapi --cov-report=term-missing"
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+strict = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]
