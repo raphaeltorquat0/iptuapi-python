@@ -34,6 +34,7 @@ from .models import (
     ITBIValidacao,
     ITBISimulacao,
     RateLimitInfo,
+    PropertyEvaluation,
 )
 
 
@@ -375,6 +376,79 @@ class IPTUClient:
             },
         )
         return [Comparavel.from_dict(item) for item in data.get("data", [])]
+
+    def valuation_evaluate(
+        self,
+        sql: Optional[str] = None,
+        logradouro: Optional[str] = None,
+        numero: Optional[int] = None,
+        complemento: Optional[str] = None,
+        bairro: Optional[str] = None,
+        cidade: str = "sp",
+        incluir_itbi: bool = True,
+        incluir_comparaveis: bool = True,
+    ) -> PropertyEvaluation:
+        """
+        Avalia imovel por endereco OU SQL.
+
+        Endpoint principal para avaliacao de imoveis. Combina:
+        - Dados cadastrais do IPTU (BD Pro - 93M registros)
+        - Modelo AVM de Machine Learning (XGBoost)
+        - Transacoes ITBI reais (1M+ transacoes)
+
+        Requer plano Pro ou superior.
+
+        Args:
+            sql: Numero SQL do imovel (alternativa ao endereco)
+            logradouro: Nome da rua/avenida (alternativa ao SQL)
+            numero: Numero do imovel
+            complemento: Apartamento, sala, etc.
+            bairro: Bairro
+            cidade: Codigo da cidade (sp, bh)
+            incluir_itbi: Incluir estimativa baseada em ITBI
+            incluir_comparaveis: Incluir lista de imoveis comparaveis
+
+        Returns:
+            PropertyEvaluation com avaliacao completa
+
+        Raises:
+            ValidationError: Se nao informar SQL nem logradouro
+            NotFoundError: Se imovel nao encontrado
+            ForbiddenError: Se plano insuficiente
+
+        Example:
+            >>> # Por SQL
+            >>> avaliacao = client.valuation_evaluate(sql="05419035001401")
+            >>> print(f"Valor: R$ {avaliacao.valor_estimado:,.2f}")
+
+            >>> # Por endereco
+            >>> avaliacao = client.valuation_evaluate(
+            ...     logradouro="Avenida Paulista",
+            ...     numero=1000,
+            ...     cidade="sp"
+            ... )
+            >>> print(f"Metodo: {avaliacao.valor_final.metodo}")
+            >>> print(f"Confianca: {avaliacao.valor_final.confianca:.0%}")
+        """
+        payload: Dict[str, Any] = {
+            "cidade": cidade,
+            "incluir_itbi": incluir_itbi,
+            "incluir_comparaveis": incluir_comparaveis,
+        }
+
+        if sql:
+            payload["sql"] = sql
+        if logradouro:
+            payload["logradouro"] = logradouro
+        if numero is not None:
+            payload["numero"] = numero
+        if complemento:
+            payload["complemento"] = complemento
+        if bairro:
+            payload["bairro"] = bairro
+
+        data = self._make_request("POST", "/valuation/evaluate", json_data=payload)
+        return PropertyEvaluation.from_dict(data)
 
     # ==================== ITBI ====================
 

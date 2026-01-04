@@ -350,3 +350,126 @@ class ITBISimulacao:
             valor_itbi_total=data.get("valor_itbi_total", 0),
             economia_sfh=data.get("economia_sfh", 0),
         )
+
+
+# ==================== AVM EVALUATE ====================
+
+@dataclass
+class AVMEstimate:
+    """Estimativa do modelo AVM (Machine Learning)."""
+
+    valor_estimado: float
+    valor_minimo: float
+    valor_maximo: float
+    valor_m2: float
+    confianca: float
+    modelo_versao: str
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> Optional["AVMEstimate"]:
+        """Cria AVMEstimate a partir de um dicionario."""
+        if not data:
+            return None
+        return cls(
+            valor_estimado=data.get("valor_estimado", 0),
+            valor_minimo=data.get("valor_minimo", 0),
+            valor_maximo=data.get("valor_maximo", 0),
+            valor_m2=data.get("valor_m2", 0),
+            confianca=data.get("confianca", 0),
+            modelo_versao=data.get("modelo_versao", ""),
+        )
+
+
+@dataclass
+class ITBIMarketEstimate:
+    """Estimativa baseada em transacoes ITBI reais."""
+
+    valor_estimado: float
+    faixa_minima: float
+    faixa_maxima: float
+    valor_m2_mediana: float
+    total_transacoes: int
+    periodo: str
+    fonte: str
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> Optional["ITBIMarketEstimate"]:
+        """Cria ITBIMarketEstimate a partir de um dicionario."""
+        if not data:
+            return None
+        return cls(
+            valor_estimado=data.get("valor_estimado", 0),
+            faixa_minima=data.get("faixa_minima", 0),
+            faixa_maxima=data.get("faixa_maxima", 0),
+            valor_m2_mediana=data.get("valor_m2_mediana", 0),
+            total_transacoes=data.get("total_transacoes", 0),
+            periodo=data.get("periodo", ""),
+            fonte=data.get("fonte", ""),
+        )
+
+
+@dataclass
+class FinalValuation:
+    """Valor final combinado (AVM + ITBI)."""
+
+    estimado: float
+    minimo: float
+    maximo: float
+    metodo: str
+    peso_avm: float
+    peso_itbi: float
+    confianca: float
+    nota: Optional[str] = None
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "FinalValuation":
+        """Cria FinalValuation a partir de um dicionario."""
+        return cls(
+            estimado=data.get("estimado", 0),
+            minimo=data.get("minimo", 0),
+            maximo=data.get("maximo", 0),
+            metodo=data.get("metodo", ""),
+            peso_avm=data.get("peso_avm", 0),
+            peso_itbi=data.get("peso_itbi", 0),
+            confianca=data.get("confianca", 0),
+            nota=data.get("nota"),
+        )
+
+
+@dataclass
+class PropertyEvaluation:
+    """
+    Resultado completo da avaliacao de imovel.
+
+    Combina dados do IPTU, modelo AVM (ML) e transacoes ITBI
+    para fornecer uma avaliacao abrangente do valor de mercado.
+    """
+
+    imovel: Dict[str, Any]
+    avaliacao_avm: Optional[AVMEstimate]
+    avaliacao_itbi: Optional[ITBIMarketEstimate]
+    valor_final: FinalValuation
+    comparaveis: Optional[Dict[str, Any]]
+    metadata: Dict[str, Any]
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "PropertyEvaluation":
+        """Cria PropertyEvaluation a partir de um dicionario."""
+        return cls(
+            imovel=data.get("imovel", {}),
+            avaliacao_avm=AVMEstimate.from_dict(data.get("avaliacao_avm")),
+            avaliacao_itbi=ITBIMarketEstimate.from_dict(data.get("avaliacao_itbi")),
+            valor_final=FinalValuation.from_dict(data.get("valor_final", {})),
+            comparaveis=data.get("comparaveis"),
+            metadata=data.get("metadata", {}),
+        )
+
+    @property
+    def valor_estimado(self) -> float:
+        """Retorna o valor estimado final."""
+        return self.valor_final.estimado
+
+    @property
+    def fontes_utilizadas(self) -> List[str]:
+        """Retorna lista de fontes de dados utilizadas."""
+        return self.metadata.get("fontes", [])

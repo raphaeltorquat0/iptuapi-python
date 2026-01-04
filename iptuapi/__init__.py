@@ -31,10 +31,15 @@ from .models import (
     ITBIValidacao,
     ITBISimulacao,
     RateLimitInfo,
+    # AVM Evaluate
+    PropertyEvaluation,
+    AVMEstimate,
+    ITBIMarketEstimate,
+    FinalValuation,
 )
 from .config import ClientConfig, RetryConfig
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __author__ = "IPTU API"
 __email__ = "suporte@iptuapi.com.br"
 
@@ -68,4 +73,9 @@ __all__ = [
     "ITBIValidacao",
     "ITBISimulacao",
     "RateLimitInfo",
+    # AVM Evaluate Models
+    "PropertyEvaluation",
+    "AVMEstimate",
+    "ITBIMarketEstimate",
+    "FinalValuation",
 ]
