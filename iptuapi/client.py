@@ -212,7 +212,7 @@ class IPTUClient:
         Args:
             logradouro: Nome da rua/avenida
             numero: Numero do imovel
-            cidade: Codigo da cidade (sp, bh, recife)
+            cidade: Codigo da cidade (sp, bh, recife, poa, fortaleza, curitiba, rj, brasilia)
 
         Returns:
             Lista de imoveis encontrados
@@ -236,7 +236,7 @@ class IPTUClient:
 
         Args:
             sql: Numero SQL (SP), Indice Cadastral (BH) ou Sequencial (Recife)
-            cidade: Codigo da cidade (sp, bh, recife)
+            cidade: Codigo da cidade (sp, bh, recife, poa, fortaleza, curitiba, rj, brasilia)
 
         Returns:
             Lista de imoveis encontrados
@@ -258,7 +258,7 @@ class IPTUClient:
 
         Args:
             cep: CEP do endereco
-            cidade: Codigo da cidade (sp, bh, recife)
+            cidade: Codigo da cidade (sp, bh, recife, poa, fortaleza, curitiba, rj, brasilia)
 
         Returns:
             Lista de imoveis encontrados
@@ -314,7 +314,7 @@ class IPTUClient:
             area_terreno: Area do terreno em m2
             area_construida: Area construida em m2
             bairro: Nome do bairro
-            cidade: Codigo da cidade (sp, bh, recife)
+            cidade: Codigo da cidade (sp, bh, recife, poa, fortaleza, curitiba, rj, brasilia)
             zona: Zona de uso (ex: ZM, ZR)
             tipo_uso: Tipo de uso (Residencial, Comercial, etc)
             tipo_padrao: Padrao de construcao (Alto, Medio, Baixo)
@@ -358,7 +358,7 @@ class IPTUClient:
             bairro: Nome do bairro
             area_min: Area minima em m2
             area_max: Area maxima em m2
-            cidade: Codigo da cidade (sp, bh, recife)
+            cidade: Codigo da cidade (sp, bh, recife, poa, fortaleza, curitiba, rj, brasilia)
             limit: Numero maximo de resultados
 
         Returns:
@@ -462,7 +462,7 @@ class IPTUClient:
 
         Args:
             protocolo: Numero do protocolo ITBI
-            cidade: Codigo da cidade (sp, bh, recife)
+            cidade: Codigo da cidade (sp, bh, recife, poa, fortaleza, curitiba, rj, brasilia)
 
         Returns:
             Status da transacao
@@ -486,7 +486,7 @@ class IPTUClient:
         Args:
             sql: Numero SQL do imovel
             valor_transacao: Valor da transacao
-            cidade: Codigo da cidade (sp, bh, recife)
+            cidade: Codigo da cidade (sp, bh, recife, poa, fortaleza, curitiba, rj, brasilia)
 
         Returns:
             Calculo do ITBI
@@ -514,7 +514,7 @@ class IPTUClient:
 
         Args:
             sql: Numero SQL do imovel
-            cidade: Codigo da cidade (sp, bh, recife)
+            cidade: Codigo da cidade (sp, bh, recife, poa, fortaleza, curitiba, rj, brasilia)
 
         Returns:
             Lista de transacoes historicas
@@ -534,7 +534,7 @@ class IPTUClient:
         Consulta aliquotas ITBI vigentes.
 
         Args:
-            cidade: Codigo da cidade (sp, bh, recife)
+            cidade: Codigo da cidade (sp, bh, recife, poa, fortaleza, curitiba, rj, brasilia)
 
         Returns:
             Aliquotas vigentes
@@ -554,7 +554,7 @@ class IPTUClient:
         Consulta isencoes ITBI disponiveis.
 
         Args:
-            cidade: Codigo da cidade (sp, bh, recife)
+            cidade: Codigo da cidade (sp, bh, recife, poa, fortaleza, curitiba, rj, brasilia)
 
         Returns:
             Lista de isencoes disponiveis
@@ -589,7 +589,7 @@ class IPTUClient:
             comprador_documento: CPF/CNPJ do comprador
             vendedor_nome: Nome do vendedor
             vendedor_documento: CPF/CNPJ do vendedor
-            cidade: Codigo da cidade (sp, bh, recife)
+            cidade: Codigo da cidade (sp, bh, recife, poa, fortaleza, curitiba, rj, brasilia)
             comprador_email: Email do comprador (opcional)
 
         Returns:
@@ -624,7 +624,7 @@ class IPTUClient:
 
         Args:
             protocolo: Numero do protocolo da guia
-            cidade: Codigo da cidade (sp, bh, recife)
+            cidade: Codigo da cidade (sp, bh, recife, poa, fortaleza, curitiba, rj, brasilia)
 
         Returns:
             Resultado da validacao
@@ -648,7 +648,7 @@ class IPTUClient:
 
         Args:
             valor_transacao: Valor da transacao
-            cidade: Codigo da cidade (sp, bh, recife)
+            cidade: Codigo da cidade (sp, bh, recife, poa, fortaleza, curitiba, rj, brasilia)
             tipo_financiamento: Tipo de financiamento (sfh, nao_sfh)
             valor_financiado: Valor financiado
 

@@ -109,7 +109,7 @@ for imovel in imoveis:
 |-----------|------|-------------|-----------|
 | logradouro | str | Sim | Nome da rua/avenida |
 | numero | str | Sim | Numero do imovel |
-| cidade | str | Nao | Codigo da cidade (sp, bh, recife). Default: sp |
+| cidade | str | Nao | Codigo da cidade (sp, bh, recife, poa, fortaleza, curitiba, rj, brasilia). Default: sp |
 
 **Resposta (Imovel):**
 
