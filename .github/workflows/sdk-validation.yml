@@ -40,32 +40,32 @@ jobs:
       - name: Test import
         run: |
           source /tmp/sdk-clean-test/bin/activate
-          python -c "
-from iptuapi import IPTUClient
-if not IPTUClient:
-    raise ImportError('IPTUClient not found')
-print('Import successful')
-          "
+          cat > /tmp/test_import.py << 'EOF'
+          from iptuapi import IPTUClient
+          if not IPTUClient:
+              raise ImportError("IPTUClient not found")
+          print("Import successful")
+          EOF
+          python /tmp/test_import.py
 
       - name: Verify package structure
         run: |
           source /tmp/sdk-clean-test/bin/activate
-          python -c "
-import iptuapi
-import inspect
+          cat > /tmp/verify_structure.py << 'EOF'
+          import iptuapi
+          import inspect
 
-# Check main class exists
-from iptuapi import IPTUClient
-print('IPTUClient class found')
+          from iptuapi import IPTUClient
+          print("IPTUClient class found")
 
-# Check key methods exist
-methods = ['consulta_endereco', 'iptu_tools_cidades']
-for method in methods:
-    if hasattr(IPTUClient, method):
-        print(f'Method {method} found')
-    else:
-        print(f'Warning: Method {method} not found')
-          "
+          methods = ["consulta_endereco", "iptu_tools_cidades"]
+          for method in methods:
+              if hasattr(IPTUClient, method):
+                  print(f"Method {method} found")
+              else:
+                  print(f"Warning: Method {method} not found")
+          EOF
+          python /tmp/verify_structure.py
 
   smoke-test-real-api:
     name: Smoke Test Real API
@@ -90,63 +90,63 @@ for method in methods:
           IPTU_TEST_API_KEY: ${{ secrets.IPTU_TEST_API_KEY }}
         run: |
           source /tmp/sdk-smoke-test/bin/activate
-          python -c "
-import os
-from iptuapi import IPTUClient
+          cat > /tmp/test_cidades.py << 'EOF'
+          import os
+          from iptuapi import IPTUClient
 
-api_key = os.environ.get('IPTU_TEST_API_KEY')
-if not api_key:
-    raise ValueError('IPTU_TEST_API_KEY not set')
+          api_key = os.environ.get("IPTU_TEST_API_KEY")
+          if not api_key:
+              raise ValueError("IPTU_TEST_API_KEY not set")
 
-print('Testing iptuToolsCidades...')
-client = IPTUClient(api_key=api_key)
-result = client.iptu_tools_cidades()
+          print("Testing iptuToolsCidades...")
+          client = IPTUClient(api_key=api_key)
+          result = client.iptu_tools_cidades()
 
-# Validate response structure
-if not isinstance(result.get('cidades'), list):
-    raise ValueError('Expected cidades to be a list')
+          if not isinstance(result.get("cidades"), list):
+              raise ValueError("Expected cidades to be a list")
 
-total = result.get('total', 0)
-if total < 9:
-    raise ValueError('Expected at least 9 cidades, got ' + str(total))
+          total = result.get("total", 0)
+          if total < 9:
+              raise ValueError(f"Expected at least 9 cidades, got {total}")
 
-print('iptuToolsCidades test passed!')
-print('Total cidades: ' + str(total))
-          "
+          print("iptuToolsCidades test passed!")
+          print(f"Total cidades: {total}")
+          EOF
+          python /tmp/test_cidades.py
 
       - name: Test authenticated endpoint (consultaEndereco)
         env:
           IPTU_TEST_API_KEY: ${{ secrets.IPTU_TEST_API_KEY }}
         run: |
           source /tmp/sdk-smoke-test/bin/activate
-          python -c "
-import os
-from iptuapi import IPTUClient
+          cat > /tmp/test_auth.py << 'EOF'
+          import os
+          from iptuapi import IPTUClient
 
-api_key = os.environ.get('IPTU_TEST_API_KEY')
-if not api_key:
-    raise ValueError('IPTU_TEST_API_KEY not set')
+          api_key = os.environ.get("IPTU_TEST_API_KEY")
+          if not api_key:
+              raise ValueError("IPTU_TEST_API_KEY not set")
 
-print('Testing consultaEndereco (authenticated endpoint)...')
-client = IPTUClient(api_key=api_key)
-result = client.consulta_endereco(
-    logradouro='Avenida Paulista',
-    numero='1000',
-    cidade='sp'
-)
+          print("Testing consultaEndereco (authenticated endpoint)...")
+          client = IPTUClient(api_key=api_key)
+          result = client.consulta_endereco(
+              logradouro="Avenida Paulista",
+              numero="1000",
+              cidade="sp"
+          )
 
-# Validate response structure
-if not result.get('success'):
-    raise ValueError('Expected success to be true')
+          if not result.get("success"):
+              raise ValueError("Expected success to be true")
 
-dados_iptu = result.get('dados_iptu', {})
-sql = dados_iptu.get('sql')
-if not sql or not isinstance(sql, str):
-    raise ValueError('Expected dados_iptu.sql to be a non-empty string')
+          dados_iptu = result.get("dados_iptu", {})
+          sql = dados_iptu.get("sql")
+          if not sql or not isinstance(sql, str):
+              raise ValueError("Expected dados_iptu.sql to be a non-empty string")
 
-print('Authenticated endpoint test passed!')
-print('SQL field present: ' + sql[:50] + '...')
-          "
+          print("Authenticated endpoint test passed!")
+          print(f"SQL field present: {sql[:50]}...")
+          EOF
+          python /tmp/test_auth.py
 
       - name: Validation complete
         run: |
