@@ -135,9 +135,13 @@ result = client.consulta_endereco(
 )
 
 # Validate response structure
-sql = result.get('sql')
-if not sql or not isinstance(sql, str) or len(sql) == 0:
-    raise ValueError('Expected sql to be a non-empty string')
+if not result.get('success'):
+    raise ValueError('Expected success to be true')
+
+dados_iptu = result.get('dados_iptu', {})
+sql = dados_iptu.get('sql')
+if not sql or not isinstance(sql, str):
+    raise ValueError('Expected dados_iptu.sql to be a non-empty string')
 
 print('Authenticated endpoint test passed!')
 print(f'SQL field present: {sql[:50]}...')
