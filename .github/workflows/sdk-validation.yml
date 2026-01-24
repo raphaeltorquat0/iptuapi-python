@@ -106,11 +106,12 @@ result = client.iptu_tools_cidades()
 if not isinstance(result.get('cidades'), list):
     raise ValueError('Expected cidades to be a list')
 
-if result.get('total', 0) < 9:
-    raise ValueError(f'Expected at least 9 cidades, got {result.get('total')}\")
+total = result.get('total', 0)
+if total < 9:
+    raise ValueError('Expected at least 9 cidades, got ' + str(total))
 
 print('iptuToolsCidades test passed!')
-print(f'Total cidades: {result.get('total')}\")
+print('Total cidades: ' + str(total))
           "
 
       - name: Test authenticated endpoint (consultaEndereco)
@@ -144,7 +145,7 @@ if not sql or not isinstance(sql, str):
     raise ValueError('Expected dados_iptu.sql to be a non-empty string')
 
 print('Authenticated endpoint test passed!')
-print(f'SQL field present: {sql[:50]}...')
+print('SQL field present: ' + sql[:50] + '...')
           "
 
       - name: Validation complete
