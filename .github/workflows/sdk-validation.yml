@@ -85,14 +85,21 @@ for method in methods:
           source /tmp/sdk-smoke-test/bin/activate
           pip install iptuapi
 
-      - name: Test public endpoint (iptuToolsCidades)
+      - name: Test iptuToolsCidades endpoint
+        env:
+          IPTU_TEST_API_KEY: ${{ secrets.IPTU_TEST_API_KEY }}
         run: |
           source /tmp/sdk-smoke-test/bin/activate
           python -c "
+import os
 from iptuapi import IPTUClient
 
-print('Testing iptuToolsCidades (public endpoint)...')
-client = IPTUClient()
+api_key = os.environ.get('IPTU_TEST_API_KEY')
+if not api_key:
+    raise ValueError('IPTU_TEST_API_KEY not set')
+
+print('Testing iptuToolsCidades...')
+client = IPTUClient(api_key=api_key)
 result = client.iptu_tools_cidades()
 
 # Validate response structure
@@ -102,7 +109,7 @@ if not isinstance(result.get('cidades'), list):
 if result.get('total', 0) < 9:
     raise ValueError(f\"Expected at least 9 cidades, got {result.get('total')}\")
 
-print('Public endpoint test passed!')
+print('iptuToolsCidades test passed!')
 print(f\"Total cidades: {result.get('total')}\")
           "
 
