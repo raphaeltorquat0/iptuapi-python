@@ -1,0 +1,145 @@
+name: SDK Validation
+
+on:
+  workflow_call:
+    secrets:
+      IPTU_TEST_API_KEY:
+        required: true
+  workflow_dispatch:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 6 AM UTC
+
+env:
+  API_BASE_URL: https://api.iptuapi.com.br
+
+jobs:
+  clean-environment-test:
+    name: Clean Environment Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+    steps:
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Create clean virtual environment
+        run: |
+          python -m venv /tmp/sdk-clean-test
+          source /tmp/sdk-clean-test/bin/activate
+
+      - name: Install SDK from PyPI registry
+        run: |
+          source /tmp/sdk-clean-test/bin/activate
+          pip install iptuapi
+
+      - name: Test import
+        run: |
+          source /tmp/sdk-clean-test/bin/activate
+          python -c "
+from iptuapi import IPTUClient
+if not IPTUClient:
+    raise ImportError('IPTUClient not found')
+print('Import successful')
+          "
+
+      - name: Verify package structure
+        run: |
+          source /tmp/sdk-clean-test/bin/activate
+          python -c "
+import iptuapi
+import inspect
+
+# Check main class exists
+from iptuapi import IPTUClient
+print('IPTUClient class found')
+
+# Check key methods exist
+methods = ['consulta_endereco', 'iptu_tools_cidades']
+for method in methods:
+    if hasattr(IPTUClient, method):
+        print(f'Method {method} found')
+    else:
+        print(f'Warning: Method {method} not found')
+          "
+
+  smoke-test-real-api:
+    name: Smoke Test Real API
+    runs-on: ubuntu-latest
+    needs: clean-environment-test
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Create clean virtual environment
+        run: python -m venv /tmp/sdk-smoke-test
+
+      - name: Install SDK from PyPI registry
+        run: |
+          source /tmp/sdk-smoke-test/bin/activate
+          pip install iptuapi
+
+      - name: Test public endpoint (iptuToolsCidades)
+        run: |
+          source /tmp/sdk-smoke-test/bin/activate
+          python -c "
+from iptuapi import IPTUClient
+
+print('Testing iptuToolsCidades (public endpoint)...')
+client = IPTUClient()
+result = client.iptu_tools_cidades()
+
+# Validate response structure
+if not isinstance(result.get('cidades'), list):
+    raise ValueError('Expected cidades to be a list')
+
+if result.get('total', 0) < 9:
+    raise ValueError(f\"Expected at least 9 cidades, got {result.get('total')}\")
+
+print('Public endpoint test passed!')
+print(f\"Total cidades: {result.get('total')}\")
+          "
+
+      - name: Test authenticated endpoint (consultaEndereco)
+        env:
+          IPTU_TEST_API_KEY: ${{ secrets.IPTU_TEST_API_KEY }}
+        run: |
+          source /tmp/sdk-smoke-test/bin/activate
+          python -c "
+import os
+from iptuapi import IPTUClient
+
+api_key = os.environ.get('IPTU_TEST_API_KEY')
+if not api_key:
+    raise ValueError('IPTU_TEST_API_KEY not set')
+
+print('Testing consultaEndereco (authenticated endpoint)...')
+client = IPTUClient(api_key=api_key)
+result = client.consulta_endereco(
+    logradouro='Avenida Paulista',
+    numero='1000',
+    cidade='sp'
+)
+
+# Validate response structure
+sql = result.get('sql')
+if not sql or not isinstance(sql, str) or len(sql) == 0:
+    raise ValueError('Expected sql to be a non-empty string')
+
+print('Authenticated endpoint test passed!')
+print(f'SQL field present: {sql[:50]}...')
+          "
+
+      - name: Validation complete
+        run: |
+          echo "All SDK validation tests passed!"
+          echo "- Clean environment install: OK"
+          echo "- Python import: OK"
+          echo "- Public API (iptuToolsCidades): OK"
+          echo "- Authenticated API (consultaEndereco): OK"

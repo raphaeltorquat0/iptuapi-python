@@ -1,0 +1,113 @@
+name: Update SDK Status
+
+on:
+  workflow_run:
+    workflows: ["Release"]
+    types:
+      - completed
+  schedule:
+    - cron: '0 7 * * *'  # Daily at 7 AM UTC (after validation)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-status:
+    name: Update SDK Status
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Get latest version from PyPI
+        id: pypi_version
+        run: |
+          VERSION=$(pip index versions iptuapi 2>/dev/null | grep -oP 'iptuapi \(\K[^)]+' | head -1 || echo "not published")
+          if [ -z "$VERSION" ]; then
+            VERSION=$(curl -s https://pypi.org/pypi/iptuapi/json | python -c "import sys, json; print(json.load(sys.stdin).get('info', {}).get('version', 'not published'))" 2>/dev/null || echo "not published")
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Latest PyPI version: $VERSION"
+
+      - name: Get pyproject.toml version
+        id: pkg_version
+        run: |
+          VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])" 2>/dev/null || echo "unknown")
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "pyproject.toml version: $VERSION"
+
+      - name: Run validation check
+        id: validation
+        continue-on-error: true
+        run: |
+          python -m venv /tmp/status-check
+          source /tmp/status-check/bin/activate
+          pip install iptuapi 2>/dev/null
+
+          # Test import
+          if python -c "from iptuapi import IPTUClient; print('OK')" 2>/dev/null; then
+            echo "STATUS=passing" >> $GITHUB_OUTPUT
+          else
+            echo "STATUS=failing" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get current date
+        id: date
+        run: echo "DATE=$(date -u +'%Y-%m-%d %H:%M UTC')" >> $GITHUB_OUTPUT
+
+      - name: Update SDK-STATUS.md
+        run: |
+          cat > SDK-STATUS.md << 'EOF'
+          # SDK Status
+
+          > Auto-generated status file. Last updated: ${{ steps.date.outputs.DATE }}
+
+          ## Version Information
+
+          | Metric | Value |
+          |--------|-------|
+          | **Latest Published** | ${{ steps.pypi_version.outputs.VERSION }} |
+          | **Source Version** | ${{ steps.pkg_version.outputs.VERSION }} |
+          | **Registry** | PyPI (pypi.org) |
+          | **Package** | iptuapi |
+
+          ## Validation Status
+
+          | Check | Status |
+          |-------|--------|
+          | **Clean Install** | ${{ steps.validation.outputs.STATUS == 'passing' && '✅ Passing' || '❌ Failing' }} |
+          | **Python Import** | ${{ steps.validation.outputs.STATUS == 'passing' && '✅ Passing' || '❌ Failing' }} |
+
+          ## Compatibility
+
+          | Python Version | Status |
+          |----------------|--------|
+          | 3.9 | ✅ Supported |
+          | 3.10 | ✅ Supported |
+          | 3.11 | ✅ Supported |
+          | 3.12 | ✅ Supported |
+
+          ## Links
+
+          - [PyPI Package](https://pypi.org/project/iptuapi/)
+          - [API Documentation](https://docs.iptuapi.com.br)
+          - [GitHub Repository](https://github.com/raphaeltorquat0/iptuapi-python)
+
+          ---
+          *This file is automatically updated by GitHub Actions.*
+          EOF
+
+      - name: Commit status update
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add SDK-STATUS.md
+          git diff --staged --quiet || git commit -m "chore: update SDK status [skip ci]"
+          git push || echo "No changes to push"
