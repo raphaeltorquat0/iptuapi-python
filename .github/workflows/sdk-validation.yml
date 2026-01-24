@@ -107,10 +107,10 @@ if not isinstance(result.get('cidades'), list):
     raise ValueError('Expected cidades to be a list')
 
 if result.get('total', 0) < 9:
-    raise ValueError(f\"Expected at least 9 cidades, got {result.get('total')}\")
+    raise ValueError(f'Expected at least 9 cidades, got {result.get('total')}\")
 
 print('iptuToolsCidades test passed!')
-print(f\"Total cidades: {result.get('total')}\")
+print(f'Total cidades: {result.get('total')}\")
           "
 
       - name: Test authenticated endpoint (consultaEndereco)
